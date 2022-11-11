@@ -17,7 +17,7 @@ func SetupRouter() *gin.Engine {
 	})
 
 	// redirect url
-	r.GET("/api/:url", redirectUrl)
+	r.GET("/api/:url")
 
 	// short url
 	r.POST("/long-url", func(ctx *gin.Context) {

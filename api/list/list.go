@@ -1,4 +1,4 @@
-package api
+package list
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func redirectUrl(ctx *gin.Context) {
+func ListRoute(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":  "pong",
 		"response": "ping",

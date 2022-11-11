@@ -6,21 +6,21 @@ import (
 	"os"
 
 	"github.com/Patrick564/url-shortener-backend/internal/database"
-	allurls "github.com/Patrick564/url-shortener-backend/models/all_urls"
 )
+
+const databaseUrl string = "postgres://golang:12345@localhost:5432/conn_test"
 
 func main() {
 	// r := api.SetupRouter()
 	ctx := context.Background()
-
-	p, err := database.New(ctx)
+	d, err := database.OpenDatabaseConn(ctx, databaseUrl)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	defer p.Close()
+	defer d.Close()
 
-	allurls.FetchAllUrls(ctx, p.DB)
+	// allurls.FetchAllUrls(ctx, d)
 
 	// r.Run()
 }
