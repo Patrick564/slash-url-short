@@ -1,4 +1,4 @@
-package list
+package routes
 
 import (
 	"net/http"
@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ListRoute(ctx *gin.Context) {
+func AllRoute(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":  "pong",
-		"response": "ping",
+		"asd":  "pong",
+		"zxcs": "ping",
 	})
 }
