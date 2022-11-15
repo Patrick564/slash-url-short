@@ -1,44 +1,43 @@
 package api
 
-import (
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"testing"
-)
+// type exampleResponse struct {
+// 	Message  string `json:"message"`
+// 	Response string `json:"response"`
+// }
 
-type exampleResponse struct {
-	Message  string `json:"message"`
-	Response string `json:"response"`
-}
+// type mockResponse gin.H
 
-func TestRedirectUrl(t *testing.T) {
-	router := SetupRouter()
-	ctx := exampleResponse{Message: "pong", Response: "ping"}
+// func TestAllRoute(t *testing.T) {
+// 	router := SetupRouter()
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/:url", nil)
-	router.ServeHTTP(w, req)
+// 	w := httptest.NewRecorder()
+// 	req, _ := http.NewRequest("GET", "/api/all", nil)
+// 	router.ServeHTTP(w, req)
 
-	wantBody, _ := json.Marshal(ctx)
+// 	wantBody := gin.H{
+// 		"ggl": "https://google.com",
+// 		"go":  "https://go.dev",
+// 		"tw":  "https://twitch.tv",
+// 	}
+// 	body := gin.H{}
+// 	_ = json.Unmarshal(w.Body.Bytes(), &body)
 
-	assertCode(t, http.StatusOK, w.Code)
-	assertBody(t, string(wantBody), w.Body.String())
-}
+// 	assertStatusCode(t, http.StatusOK, w.Code)
+// 	assertResponseBody(t, wantBody, body)
+// }
 
-func assertCode(t testing.TB, want, got int) {
-	t.Helper()
+// func assertStatusCode(t testing.TB, want, got int) {
+// 	t.Helper()
 
-	if want != got {
-		t.Fatalf("got %d code, but want %d code", got, want)
-	}
-}
+// 	if want != got {
+// 		t.Fatalf("got %d code, but want %d code", got, want)
+// 	}
+// }
 
-func assertBody(t testing.TB, want, got string) {
-	t.Helper()
+// func assertResponseBody(t testing.TB, want, got gin.H) {
+// 	t.Helper()
 
-	if !reflect.DeepEqual(want, got) {
-		t.Fatalf("got %+v body, but want %+v body", got, want)
-	}
-}
+// 	if !reflect.DeepEqual(want, got) {
+// 		t.Fatalf("got %+v body, but want %+v body", got, want)
+// 	}
+// }

@@ -1,4 +1,4 @@
-package database
+package models
 
 import (
 	"context"
@@ -7,15 +7,13 @@ import (
 )
 
 type Database struct {
-	db *pgxpool.Pool
+	DB  *pgxpool.Pool
+	Ctx context.Context
 }
 
 func (d *Database) Close() {
-	d.db.Close()
+	d.DB.Close()
 }
-
-// Just test add a query method
-func (d *Database) Query() {}
 
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*Database, error) {
 	dbpool, err := pgxpool.New(ctx, databaseUrl)
@@ -23,5 +21,5 @@ func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*Database, error
 		return nil, err
 	}
 
-	return &Database{db: dbpool}, nil
+	return &Database{DB: dbpool, Ctx: ctx}, nil
 }
