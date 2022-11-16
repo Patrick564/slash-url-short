@@ -20,6 +20,6 @@ func main() {
 	}
 	defer d.Close()
 
-	r := api.SetupRouter(d.DB)
+	r := api.SetupRouter(d)
 	r.Run()
 }

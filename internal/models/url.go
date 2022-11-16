@@ -14,11 +14,12 @@ type Url struct {
 type Urls []Url
 
 type UrlModel struct {
-	DB *pgxpool.Pool
+	DB  *pgxpool.Pool
+	Ctx context.Context
 }
 
-func (u *UrlModel) All(ctx context.Context) (Urls, error) {
-	rows, err := u.DB.Query(ctx, "SELECT short_url, original_url FROM mock_values")
+func (u *UrlModel) All() (Urls, error) {
+	rows, err := u.DB.Query(u.Ctx, "SELECT short_url, original_url FROM mock_values")
 	if err != nil {
 		return nil, err
 	}

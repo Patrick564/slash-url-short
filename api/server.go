@@ -1,22 +1,18 @@
 package api
 
 import (
+	"github.com/Patrick564/url-shortener-backend/api/controllers"
 	"github.com/Patrick564/url-shortener-backend/internal/models"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type tem struct {
-	books models.UrlModel
-}
-
-func SetupRouter(db *pgxpool.Pool) *gin.Engine {
+func SetupRouter(db *models.Database) *gin.Engine {
 	r := gin.Default()
-	b := tem{books: models.UrlModel{DB: db}}
+	c := &controllers.Env{
+		Urls: &models.UrlModel{DB: db.DB, Ctx: db.Ctx},
+	}
 
-	r.GET("/api/all", b.urlsIndex)
+	r.GET("/api/all", c.All)
 
 	return r
 }
-
-func (t *tem) urlsIndex(ctx *gin.Context) {}
