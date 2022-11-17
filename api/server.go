@@ -6,13 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(db *models.Database) *gin.Engine {
+func SetupRouter(u *models.UrlModel) *gin.Engine {
 	r := gin.Default()
+	// r.Use(controllers.ErrorHandler)
+
 	c := &controllers.Env{
-		Urls: &models.UrlModel{DB: db.DB, Ctx: db.Ctx},
+		Urls: &models.UrlModel{DB: u.DB, Ctx: u.Ctx},
 	}
 
-	r.GET("/api/all", c.All)
+	r.GET("/api/all", c.UrlsIndex)
 
 	return r
 }

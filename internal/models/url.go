@@ -7,25 +7,27 @@ import (
 )
 
 type Url struct {
-	ShortUrl    string `json:"name" db:"short_url"`
-	OriginalUrl string `json:"age" db:"original_url"`
+	ShortUrl    string `json:"short_url" db:"short_url"`
+	OriginalUrl string `json:"original_url" db:"original_url"`
 }
-
-type Urls []Url
 
 type UrlModel struct {
 	DB  *pgxpool.Pool
 	Ctx context.Context
 }
 
-func (u *UrlModel) All() (Urls, error) {
+func (u *UrlModel) Close() {
+	u.DB.Close()
+}
+
+func (u *UrlModel) GetAll() ([]Url, error) {
 	rows, err := u.DB.Query(u.Ctx, "SELECT short_url, original_url FROM mock_values")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	urls := make(Urls, 0)
+	var urls []Url
 	for rows.Next() {
 		var u Url
 		err = rows.Scan(&u.ShortUrl, &u.OriginalUrl)
@@ -41,4 +43,13 @@ func (u *UrlModel) All() (Urls, error) {
 	return urls, nil
 }
 
-func (u *Urls) GetByID() {}
+func (u *UrlModel) GetByID() {}
+
+func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*UrlModel, error) {
+	dbpool, err := pgxpool.New(ctx, databaseUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UrlModel{DB: dbpool, Ctx: ctx}, dbpool.Ping(ctx)
+}

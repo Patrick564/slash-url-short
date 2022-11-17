@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/Patrick564/url-shortener-backend/internal/models"
@@ -8,15 +9,23 @@ import (
 )
 
 type Controllers interface {
-	All() (models.Urls, error)
+	GetAll() ([]models.Url, error)
 }
 
 type Env struct {
 	Urls Controllers
 }
 
-func (e *Env) All(ctx *gin.Context) {
-	m, _ := e.Urls.All()
+func (e *Env) UrlsIndex(ctx *gin.Context) {
+	u, err := e.Urls.GetAll()
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(
+			http.StatusInternalServerError,
+			gin.H{"urls": "", "error": err},
+		)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, gin.H{"data": m})
+	ctx.JSON(http.StatusOK, gin.H{"urls": u, "error": ""})
 }
