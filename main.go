@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Patrick564/url-shortener-backend/api"
+	"github.com/Patrick564/url-shortener-backend/api/controllers"
 	"github.com/Patrick564/url-shortener-backend/internal/models"
 )
 
@@ -19,6 +20,10 @@ func main() {
 	}
 	defer u.Close()
 
-	r := api.SetupRouter(u)
+	e := &controllers.Env{
+		Urls: &models.UrlModel{DB: u.DB, Ctx: u.Ctx},
+	}
+
+	r := api.SetupRouter(e)
 	r.Run()
 }
