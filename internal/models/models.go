@@ -11,17 +11,16 @@ type Url struct {
 	OriginalUrl string `json:"original_url" db:"original_url"`
 }
 
-// Not use a pointer in methods
 type UrlModel struct {
 	DB  *pgxpool.Pool
 	Ctx context.Context
 }
 
-func (u *UrlModel) Close() {
+func (u UrlModel) Close() {
 	u.DB.Close()
 }
 
-func (u *UrlModel) GetAll() ([]Url, error) {
+func (u UrlModel) All() ([]Url, error) {
 	rows, err := u.DB.Query(u.Ctx, "SELECT short_url, original_url FROM mock_values")
 	if err != nil {
 		return nil, err
@@ -44,22 +43,22 @@ func (u *UrlModel) GetAll() ([]Url, error) {
 	return urls, nil
 }
 
-func (u *UrlModel) GetByID() {}
+func (u UrlModel) GetByID() {}
 
-func (u *UrlModel) Add(id string, url string) (*Url, error) {
+func (u UrlModel) Add(id string, url string) (Url, error) {
 	_, err := u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", id, url)
 	if err != nil {
-		return &Url{}, err
+		return Url{}, err
 	}
 
-	return &Url{ShortUrl: id, OriginalUrl: url}, nil
+	return Url{ShortUrl: id, OriginalUrl: url}, nil
 }
 
-func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*UrlModel, error) {
+func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
 	dbpool, err := pgxpool.New(ctx, databaseUrl)
 	if err != nil {
-		return nil, err
+		return UrlModel{}, err
 	}
 
-	return &UrlModel{DB: dbpool, Ctx: ctx}, dbpool.Ping(ctx)
+	return UrlModel{DB: dbpool, Ctx: ctx}, dbpool.Ping(ctx)
 }

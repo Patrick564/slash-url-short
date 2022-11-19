@@ -5,12 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(u *controllers.Env) *gin.Engine {
+func SetupRouter(env *controllers.Env) *gin.Engine {
 	r := gin.Default()
 	// r.Use(controllers.ErrorHandler)
 
-	r.GET("/api/all", u.UrlsIndex)
-	r.POST("/api/add", u.UrlsAdd)
+	r.GET("/api/all", env.UrlsIndex)
+	r.POST("/api/add", env.UrlsAdd)
 
 	return r
 }

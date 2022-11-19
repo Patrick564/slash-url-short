@@ -21,7 +21,7 @@ func main() {
 	defer u.Close()
 
 	e := &controllers.Env{
-		Urls: &models.UrlModel{DB: u.DB, Ctx: u.Ctx},
+		Urls: models.UrlModel{DB: u.DB, Ctx: u.Ctx},
 	}
 
 	r := api.SetupRouter(e)

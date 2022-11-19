@@ -10,8 +10,8 @@ import (
 )
 
 type Controllers interface {
-	GetAll() ([]models.Url, error)
-	Add(id string, url string) (*models.Url, error)
+	All() ([]models.Url, error)
+	Add(id string, url string) (models.Url, error)
 }
 
 // It's ok use a pointer this
@@ -20,7 +20,7 @@ type Env struct {
 }
 
 func (e *Env) UrlsIndex(ctx *gin.Context) {
-	u, err := e.Urls.GetAll()
+	u, err := e.Urls.All()
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(
