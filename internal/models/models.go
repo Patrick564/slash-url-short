@@ -45,6 +45,15 @@ func (u *UrlModel) GetAll() ([]Url, error) {
 
 func (u *UrlModel) GetByID() {}
 
+func (u *UrlModel) Add(url string) (*Url, error) {
+	_, err := u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", "", url)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*UrlModel, error) {
 	dbpool, err := pgxpool.New(ctx, databaseUrl)
 	if err != nil {

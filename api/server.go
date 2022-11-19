@@ -10,6 +10,7 @@ func SetupRouter(u *controllers.Env) *gin.Engine {
 	// r.Use(controllers.ErrorHandler)
 
 	r.GET("/api/all", u.UrlsIndex)
+	r.POST("/api/add", u.UrlsAdd)
 
 	return r
 }

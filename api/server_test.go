@@ -1,19 +1,21 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/Patrick564/url-shortener-backend/api/controllers"
 	"github.com/Patrick564/url-shortener-backend/internal/models"
+	"github.com/Patrick564/url-shortener-backend/utils"
 )
 
 type mockUrlResponse struct {
 	Error string       `json:"error"`
-	Urls  []models.Url `json:"urls"`
+	Url   *models.Url  `json:"url,omitempty"`
+	Urls  []models.Url `json:"urls,omitempty"`
 }
 
 type mockUrlModel struct{}
@@ -28,13 +30,19 @@ func (m *mockUrlModel) GetAll() ([]models.Url, error) {
 	return urls, nil
 }
 
+func (m *mockUrlModel) Add(url string) (*models.Url, error) {
+	u := models.Url{ShortUrl: "ID_1", OriginalUrl: "www.example.com"}
+
+	return &u, nil
+}
+
 func TestAllRoute(t *testing.T) {
 	env := &controllers.Env{Urls: &mockUrlModel{}}
-
 	router := SetupRouter(env)
-
 	w := httptest.NewRecorder()
+
 	req, _ := http.NewRequest("GET", "/api/all", nil)
+
 	router.ServeHTTP(w, req)
 
 	mockResponse := mockUrlResponse{
@@ -47,22 +55,27 @@ func TestAllRoute(t *testing.T) {
 	}
 	want, _ := json.Marshal(mockResponse)
 
-	assertStatusCode(t, http.StatusOK, w.Code)
-	assertResponseBody(t, want, w.Body.String())
+	utils.AssertStatusCode(t, http.StatusOK, w.Code)
+	utils.AssertResponseBody(t, want, w.Body.String())
 }
 
-func assertStatusCode(t testing.TB, want, got int) {
-	t.Helper()
+func TestAddRoute(t *testing.T) {
+	env := &controllers.Env{Urls: &mockUrlModel{}}
+	router := SetupRouter(env)
+	w := httptest.NewRecorder()
 
-	if want != got {
-		t.Fatalf("got %d code, but want %d code", got, want)
+	reqBody := bytes.NewBuffer([]byte("{\"url\": \"www.example.com\" }"))
+	req, _ := http.NewRequest("POST", "/api/add", reqBody)
+	req.Header.Set("Content-Type", "application/json")
+
+	router.ServeHTTP(w, req)
+
+	mockResponse := mockUrlResponse{
+		Error: "",
+		Url:   &models.Url{ShortUrl: "ID_1", OriginalUrl: "www.example.com"},
 	}
-}
+	want, _ := json.Marshal(mockResponse)
 
-func assertResponseBody(t testing.TB, want []byte, got string) {
-	t.Helper()
-
-	if !reflect.DeepEqual(string(want), got) {
-		t.Fatalf("got %+v body, but want %+v body", got, string(want))
-	}
+	utils.AssertStatusCode(t, http.StatusOK, w.Code)
+	utils.AssertResponseBody(t, want, w.Body.String())
 }
