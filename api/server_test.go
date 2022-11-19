@@ -30,7 +30,7 @@ func (m *mockUrlModel) GetAll() ([]models.Url, error) {
 	return urls, nil
 }
 
-func (m *mockUrlModel) Add(url string) (*models.Url, error) {
+func (m *mockUrlModel) Add(id string, url string) (*models.Url, error) {
 	u := models.Url{ShortUrl: "ID_1", OriginalUrl: "www.example.com"}
 
 	return &u, nil

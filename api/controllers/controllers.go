@@ -6,13 +6,15 @@ import (
 
 	"github.com/Patrick564/url-shortener-backend/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/teris-io/shortid"
 )
 
 type Controllers interface {
 	GetAll() ([]models.Url, error)
-	Add(url string) (*models.Url, error)
+	Add(id string, url string) (*models.Url, error)
 }
 
+// It's ok use a pointer this
 type Env struct {
 	Urls Controllers
 }
@@ -36,6 +38,9 @@ type UrlResponse struct {
 }
 
 func (e *Env) UrlsAdd(ctx *gin.Context) {
+	sid, _ := shortid.New(1, shortid.DefaultABC, 2342)
+	id, _ := sid.Generate()
+
 	var r UrlResponse
 
 	err := ctx.BindJSON(&r)
@@ -48,7 +53,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		return
 	}
 
-	mn, err := e.Urls.Add("")
+	mn, err := e.Urls.Add(id, r.Url)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(

@@ -11,6 +11,7 @@ type Url struct {
 	OriginalUrl string `json:"original_url" db:"original_url"`
 }
 
+// Not use a pointer in methods
 type UrlModel struct {
 	DB  *pgxpool.Pool
 	Ctx context.Context
@@ -45,13 +46,13 @@ func (u *UrlModel) GetAll() ([]Url, error) {
 
 func (u *UrlModel) GetByID() {}
 
-func (u *UrlModel) Add(url string) (*Url, error) {
-	_, err := u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", "", url)
+func (u *UrlModel) Add(id string, url string) (*Url, error) {
+	_, err := u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", id, url)
 	if err != nil {
-		return nil, err
+		return &Url{}, err
 	}
 
-	return nil, nil
+	return &Url{ShortUrl: id, OriginalUrl: url}, nil
 }
 
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (*UrlModel, error) {
