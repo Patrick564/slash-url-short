@@ -2,8 +2,11 @@ package models
 
 import (
 	"context"
+	"net/url"
 
+	"github.com/Patrick564/url-shortener-backend/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/teris-io/shortid"
 )
 
 type Url struct {
@@ -14,6 +17,7 @@ type Url struct {
 type UrlModel struct {
 	DB  *pgxpool.Pool
 	Ctx context.Context
+	SID *shortid.Shortid
 }
 
 func (u UrlModel) Close() {
@@ -45,13 +49,23 @@ func (u UrlModel) All() ([]Url, error) {
 
 func (u UrlModel) GetByID() {}
 
-func (u UrlModel) Add(id string, url string) (Url, error) {
-	_, err := u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", id, url)
+func (u UrlModel) Add(rawUrl string) (Url, error) {
+	p, err := url.ParseRequestURI(rawUrl)
+	if err != nil || p.Scheme == "" || p.Host == "" {
+		return Url{}, utils.ErrInvalidUrl
+	}
+
+	sid, err := u.SID.Generate()
 	if err != nil {
 		return Url{}, err
 	}
 
-	return Url{ShortUrl: id, OriginalUrl: url}, nil
+	_, err = u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", sid, p)
+	if err != nil {
+		return Url{}, err
+	}
+
+	return Url{ShortUrl: sid, OriginalUrl: p.String()}, nil
 }
 
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
@@ -60,5 +74,10 @@ func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error)
 		return UrlModel{}, err
 	}
 
-	return UrlModel{DB: dbpool, Ctx: ctx}, dbpool.Ping(ctx)
+	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
+	if err != nil {
+		return UrlModel{}, err
+	}
+
+	return UrlModel{DB: dbpool, Ctx: ctx, SID: sid}, dbpool.Ping(ctx)
 }
