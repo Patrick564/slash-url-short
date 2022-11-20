@@ -1,0 +1,5 @@
+// Test coverage
+*.out
+
+// Enviroment files
+*.env

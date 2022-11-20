@@ -13,12 +13,6 @@ import (
 	"github.com/Patrick564/url-shortener-backend/utils"
 )
 
-type mockUrlResponse struct {
-	Error error        `json:"error"`
-	Url   *models.Url  `json:"url,omitempty"`
-	Urls  []models.Url `json:"urls,omitempty"`
-}
-
 type mockUrlModel struct{}
 
 func (m *mockUrlModel) All() ([]models.Url, error) {
@@ -39,31 +33,39 @@ func (m *mockUrlModel) Add(url string) (models.Url, error) {
 	return models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example.com"}, nil
 }
 
+type allRouteResponse struct {
+	Error error        `json:"error"`
+	Urls  []models.Url `json:"urls"`
+}
+
+type addRouteResponse struct {
+	Error error      `json:"error"`
+	Url   models.Url `json:"url"`
+}
+
 func TestAllRoute(t *testing.T) {
 	env := &controllers.Env{Urls: &mockUrlModel{}}
 	router := SetupRouter(env)
 
-	mockResponse := mockUrlResponse{
-		Error: nil,
-		Urls: []models.Url{
-			{ShortUrl: "ID_1", OriginalUrl: "https://www.example-url-1.com"},
-			{ShortUrl: "ID_2", OriginalUrl: "https://www.example-url-2.dev"},
-			{ShortUrl: "ID_3", OriginalUrl: "https://www.example-url-3.com"},
-		},
-	}
-	want, _ := json.Marshal(mockResponse)
-
 	tests := []struct {
 		name      string
 		wantCode  int
-		wantError string
+		wantError error
 		wantBody  []byte
+		res       allRouteResponse
 	}{
 		{
 			name:      "Returns without errors",
 			wantCode:  http.StatusOK,
-			wantError: "",
-			wantBody:  want,
+			wantError: nil,
+			res: allRouteResponse{
+				Error: nil,
+				Urls: []models.Url{
+					{ShortUrl: "ID_1", OriginalUrl: "https://www.example-url-1.com"},
+					{ShortUrl: "ID_2", OriginalUrl: "https://www.example-url-2.dev"},
+					{ShortUrl: "ID_3", OriginalUrl: "https://www.example-url-3.com"},
+				},
+			},
 		},
 	}
 
@@ -73,8 +75,10 @@ func TestAllRoute(t *testing.T) {
 			req, _ := http.NewRequest("GET", "/api/all", nil)
 			router.ServeHTTP(w, req)
 
+			wantBody, _ := json.Marshal(tt.res)
+
 			utils.AssertStatusCode(t, tt.wantCode, w.Code)
-			utils.AssertResponseBody(t, tt.wantBody, w.Body.String())
+			utils.AssertResponseBody(t, wantBody, w.Body.String())
 		})
 	}
 }
@@ -83,44 +87,39 @@ func TestAddRoute(t *testing.T) {
 	env := &controllers.Env{Urls: &mockUrlModel{}}
 	router := SetupRouter(env)
 
-	type m struct {
-		Error error      `json:"error"`
-		Url   models.Url `json:"url"`
-	}
-
 	tests := []struct {
-		name            string
-		reqBody         io.Reader
-		wantCode        int
-		wantError       error
-		rawMockResponse m
+		name      string
+		body      io.Reader
+		wantCode  int
+		wantError error
+		res       addRouteResponse
 	}{
 		{
 			name:      "Returns without errors",
-			reqBody:   bytes.NewBuffer([]byte("{\"url\": \"https://www.example.com\" }")),
+			body:      bytes.NewBuffer([]byte("{\"url\": \"https://www.example.com\" }")),
 			wantCode:  http.StatusOK,
 			wantError: nil,
-			rawMockResponse: m{
+			res: addRouteResponse{
 				Error: nil,
 				Url:   models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example.com"},
 			},
 		},
 		{
 			name:      "Returns error with empty body",
-			reqBody:   bytes.NewBuffer([]byte("")),
+			body:      bytes.NewBuffer([]byte("")),
 			wantCode:  http.StatusBadRequest,
 			wantError: utils.ErrEmptyBody,
-			rawMockResponse: m{
+			res: addRouteResponse{
 				Error: utils.ErrEmptyBody,
 				Url:   models.Url{},
 			},
 		},
 		{
 			name:      "Returns error with incorrect url",
-			reqBody:   bytes.NewBuffer([]byte("{\"url\": \"ejemplo-bad-url:4040\" }")),
+			body:      bytes.NewBuffer([]byte("{\"url\": \"ejemplo-bad-url:4040\" }")),
 			wantCode:  http.StatusBadRequest,
 			wantError: utils.ErrInvalidUrl,
-			rawMockResponse: m{
+			res: addRouteResponse{
 				Error: utils.ErrInvalidUrl,
 				Url:   models.Url{},
 			},
@@ -130,13 +129,13 @@ func TestAddRoute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("POST", "/api/add", tt.reqBody)
+			req, _ := http.NewRequest("POST", "/api/add", tt.body)
 			req.Header.Set("Content-Type", "application/json")
 			router.ServeHTTP(w, req)
 
-			wantBody, _ := json.Marshal(tt.rawMockResponse)
+			wantBody, _ := json.Marshal(tt.res)
 
-			utils.AssertError(t, tt.wantError, tt.rawMockResponse.Error)
+			utils.AssertError(t, tt.wantError, tt.res.Error)
 			utils.AssertStatusCode(t, tt.wantCode, w.Code)
 			utils.AssertResponseBody(t, wantBody, w.Body.String())
 		})

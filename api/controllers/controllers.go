@@ -15,7 +15,6 @@ type Controllers interface {
 	Add(url string) (models.Url, error)
 }
 
-// It's ok use a pointer this
 type Env struct {
 	Urls Controllers
 }
@@ -34,14 +33,12 @@ func (e *Env) UrlsIndex(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"error": nil, "urls": u})
 }
 
-type UrlResponse struct {
-	Url string `json:"url"`
-}
-
 func (e *Env) UrlsAdd(ctx *gin.Context) {
-	var r UrlResponse
+	var body struct {
+		Url string `json:"url"`
+	}
 
-	err := ctx.BindJSON(&r)
+	err := ctx.BindJSON(&body)
 	if err != nil {
 		if err.Error() == "EOF" {
 			log.Println(err)
@@ -60,7 +57,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		return
 	}
 
-	mn, err := e.Urls.Add(r.Url)
+	u, err := e.Urls.Add(body.Url)
 	if err != nil {
 		if errors.Is(err, utils.ErrEmptyBody) {
 			log.Println(err)
@@ -73,13 +70,13 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		log.Println(err)
 		ctx.JSON(
 			http.StatusInternalServerError,
-			gin.H{"error": err.Error(), "url": models.Url{}},
+			gin.H{"error": err, "url": models.Url{}},
 		)
 		return
 	}
 
 	ctx.JSON(
 		http.StatusOK,
-		gin.H{"error": nil, "url": mn},
+		gin.H{"error": nil, "url": u},
 	)
 }

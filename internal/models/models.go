@@ -47,25 +47,23 @@ func (u UrlModel) All() ([]Url, error) {
 	return urls, nil
 }
 
-func (u UrlModel) GetByID() {}
-
 func (u UrlModel) Add(rawUrl string) (Url, error) {
 	p, err := url.ParseRequestURI(rawUrl)
 	if err != nil || p.Scheme == "" || p.Host == "" {
 		return Url{}, utils.ErrInvalidUrl
 	}
 
-	sid, err := u.SID.Generate()
+	id, err := u.SID.Generate()
 	if err != nil {
 		return Url{}, err
 	}
 
-	_, err = u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", sid, p)
+	_, err = u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", id, p)
 	if err != nil {
 		return Url{}, err
 	}
 
-	return Url{ShortUrl: sid, OriginalUrl: p.String()}, nil
+	return Url{ShortUrl: id, OriginalUrl: p.String()}, nil
 }
 
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
