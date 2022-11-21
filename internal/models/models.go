@@ -66,6 +66,10 @@ func (u UrlModel) Add(rawUrl string) (Url, error) {
 	return Url{ShortUrl: id, OriginalUrl: p.String()}, nil
 }
 
+func (u UrlModel) GoTo(id string) (string, error) {
+	return "", utils.ErrInvalidID
+}
+
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
 	dbpool, err := pgxpool.New(ctx, databaseUrl)
 	if err != nil {

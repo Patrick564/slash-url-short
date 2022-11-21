@@ -13,6 +13,7 @@ import (
 type Controllers interface {
 	All() ([]models.Url, error)
 	Add(url string) (models.Url, error)
+	GoTo(id string) (string, error)
 }
 
 type Env struct {
@@ -67,6 +68,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 			)
 			return
 		}
+
 		log.Println(err)
 		ctx.JSON(
 			http.StatusInternalServerError,
@@ -79,4 +81,33 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		http.StatusOK,
 		gin.H{"error": nil, "url": u},
 	)
+}
+
+func (e *Env) UrlsGoToID(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		ctx.JSON(
+			http.StatusNotFound,
+			gin.H{
+				"status": http.StatusNotFound,
+				"error":  utils.ErrEmptyID.Error(),
+			},
+		)
+		return
+	}
+
+	url, err := e.Urls.GoTo(id)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": http.StatusBadRequest,
+				"error":  err.Error(),
+			},
+		)
+		return
+	}
+
+	ctx.Redirect(http.StatusMovedPermanently, url)
 }

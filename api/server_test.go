@@ -33,12 +33,20 @@ func (m *mockUrlModel) Add(url string) (models.Url, error) {
 	return models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example.com"}, nil
 }
 
-type allRouteResponse struct {
+func (m *mockUrlModel) GoTo(id string) (string, error) {
+	if id == "incorrect-id" {
+		return "", utils.ErrInvalidID
+	}
+
+	return "https://www.google.com", nil
+}
+
+type urlsResponse struct {
 	Error error        `json:"error"`
 	Urls  []models.Url `json:"urls"`
 }
 
-type addRouteResponse struct {
+type urlResponse struct {
 	Error error      `json:"error"`
 	Url   models.Url `json:"url"`
 }
@@ -52,13 +60,13 @@ func TestAllRoute(t *testing.T) {
 		wantCode  int
 		wantError error
 		wantBody  []byte
-		res       allRouteResponse
+		res       urlsResponse
 	}{
 		{
 			name:      "Returns without errors",
 			wantCode:  http.StatusOK,
 			wantError: nil,
-			res: allRouteResponse{
+			res: urlsResponse{
 				Error: nil,
 				Urls: []models.Url{
 					{ShortUrl: "ID_1", OriginalUrl: "https://www.example-url-1.com"},
@@ -92,14 +100,14 @@ func TestAddRoute(t *testing.T) {
 		body      io.Reader
 		wantCode  int
 		wantError error
-		res       addRouteResponse
+		res       urlResponse
 	}{
 		{
 			name:      "Returns without errors",
 			body:      bytes.NewBuffer([]byte("{\"url\": \"https://www.example.com\" }")),
 			wantCode:  http.StatusOK,
 			wantError: nil,
-			res: addRouteResponse{
+			res: urlResponse{
 				Error: nil,
 				Url:   models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example.com"},
 			},
@@ -109,7 +117,7 @@ func TestAddRoute(t *testing.T) {
 			body:      bytes.NewBuffer([]byte("")),
 			wantCode:  http.StatusBadRequest,
 			wantError: utils.ErrEmptyBody,
-			res: addRouteResponse{
+			res: urlResponse{
 				Error: utils.ErrEmptyBody,
 				Url:   models.Url{},
 			},
@@ -119,7 +127,7 @@ func TestAddRoute(t *testing.T) {
 			body:      bytes.NewBuffer([]byte("{\"url\": \"ejemplo-bad-url:4040\" }")),
 			wantCode:  http.StatusBadRequest,
 			wantError: utils.ErrInvalidUrl,
-			res: addRouteResponse{
+			res: urlResponse{
 				Error: utils.ErrInvalidUrl,
 				Url:   models.Url{},
 			},
@@ -138,6 +146,48 @@ func TestAddRoute(t *testing.T) {
 			utils.AssertError(t, tt.wantError, tt.res.Error)
 			utils.AssertStatusCode(t, tt.wantCode, w.Code)
 			utils.AssertResponseBody(t, wantBody, w.Body.String())
+		})
+	}
+}
+
+func TestRedirectIDRoute(t *testing.T) {
+	env := &controllers.Env{Urls: &mockUrlModel{}}
+	router := SetupRouter(env)
+
+	tests := []struct {
+		name     string
+		id       string
+		wantCode int
+		wantBody string
+	}{
+		{
+			name:     "Redirects without errors",
+			id:       "/api/correct-id",
+			wantCode: http.StatusMovedPermanently,
+			wantBody: "<a href=\"https://www.google.com\">Moved Permanently</a>.\n\n",
+		},
+		{
+			name:     "Redirects with incorrect id error",
+			id:       "/api/incorrect-id",
+			wantCode: http.StatusBadRequest,
+			wantBody: "{\"error\":\"incorrect short url\",\"status\":400}",
+		},
+		{
+			name:     "Redirects with empty id error",
+			id:       "/api/",
+			wantCode: http.StatusNotFound,
+			wantBody: "404 page not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", tt.id, nil)
+			router.ServeHTTP(w, req)
+
+			utils.AssertStatusCode(t, tt.wantCode, w.Code)
+			utils.AssertResponseBody(t, []byte(tt.wantBody), w.Body.String())
 		})
 	}
 }
