@@ -67,7 +67,14 @@ func (u UrlModel) Add(rawUrl string) (Url, error) {
 }
 
 func (u UrlModel) GoTo(id string) (string, error) {
-	return "", utils.ErrInvalidID
+	var url Url
+
+	err := u.DB.QueryRow(u.Ctx, "SELECT short_url, original_url FROM mock_values WHERE short_url=$1", id).Scan(&url.ShortUrl, &url.OriginalUrl)
+	if err != nil {
+		return "", err
+	}
+
+	return url.OriginalUrl, nil
 }
 
 func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
