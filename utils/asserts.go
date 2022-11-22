@@ -1,23 +1,22 @@
 package utils
 
 import (
-	"errors"
 	"reflect"
 	"testing"
 )
 
-func AssertError(t testing.TB, want, got error) {
+func AssertError(t testing.TB, want, got string) {
 	t.Helper()
 
-	if !errors.Is(got, want) {
+	if got == want {
 		t.Fatalf("got %+v error, but want %+v error", got, want)
 	}
 }
 
-func AssertResponseBody(t testing.TB, want []byte, got string) {
+func AssertResponseBody(t testing.TB, want, got string) {
 	t.Helper()
 
-	if !reflect.DeepEqual(string(want), got) {
+	if !reflect.DeepEqual(want, got) {
 		t.Fatalf("got %+v body, but want %+v body", got, string(want))
 	}
 }

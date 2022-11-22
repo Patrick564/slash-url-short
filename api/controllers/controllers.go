@@ -26,12 +26,12 @@ func (e *Env) UrlsIndex(ctx *gin.Context) {
 		log.Println(err)
 		ctx.JSON(
 			http.StatusInternalServerError,
-			gin.H{"error": err, "urls": []models.Url{}},
+			gin.H{"error": err.Error()},
 		)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"error": nil, "urls": u})
+	ctx.JSON(http.StatusOK, gin.H{"urls": u})
 }
 
 func (e *Env) UrlsAdd(ctx *gin.Context) {
@@ -45,7 +45,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 			log.Println(err)
 			ctx.JSON(
 				http.StatusBadRequest,
-				gin.H{"error": utils.ErrEmptyBody, "url": models.Url{}},
+				gin.H{"error": utils.ErrEmptyBody.Error()},
 			)
 			return
 		}
@@ -53,7 +53,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		log.Println(err)
 		ctx.JSON(
 			http.StatusBadRequest,
-			gin.H{"error": err, "url": models.Url{}},
+			gin.H{"error": err.Error()},
 		)
 		return
 	}
@@ -64,7 +64,7 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 			log.Println(err)
 			ctx.JSON(
 				http.StatusBadRequest,
-				gin.H{"error": err, "url": models.Url{}},
+				gin.H{"error": err.Error()},
 			)
 			return
 		}
@@ -72,14 +72,14 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		log.Println(err)
 		ctx.JSON(
 			http.StatusInternalServerError,
-			gin.H{"error": err, "url": models.Url{}},
+			gin.H{"error": err.Error()},
 		)
 		return
 	}
 
 	ctx.JSON(
 		http.StatusOK,
-		gin.H{"error": nil, "url": u},
+		gin.H{"url": u},
 	)
 }
 
