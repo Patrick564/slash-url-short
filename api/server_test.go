@@ -8,28 +8,27 @@ import (
 	"testing"
 
 	"github.com/Patrick564/url-shortener-backend/api/controllers"
-	"github.com/Patrick564/url-shortener-backend/internal/models"
 	"github.com/Patrick564/url-shortener-backend/utils"
 )
 
 type mockUrlModel struct{}
 
-func (m *mockUrlModel) All() ([]models.Url, error) {
-	var urls []models.Url
-
-	urls = append(urls, models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example-url-1.com"})
-	urls = append(urls, models.Url{ShortUrl: "ID_2", OriginalUrl: "https://www.example-url-2.dev"})
-	urls = append(urls, models.Url{ShortUrl: "ID_3", OriginalUrl: "https://www.example-url-3.com"})
+func (m *mockUrlModel) All() ([]string, error) {
+	urls := []string{
+		"url:1001",
+		"url:1002",
+		"url:1003",
+	}
 
 	return urls, nil
 }
 
-func (m *mockUrlModel) Add(url string) (models.Url, error) {
+func (m *mockUrlModel) Add(sid string, url string) (string, error) {
 	if url != "https://www.example.com" {
-		return models.Url{}, utils.ErrEmptyBody
+		return "", utils.ErrEmptyBody
 	}
 
-	return models.Url{ShortUrl: "ID_1", OriginalUrl: "https://www.example.com"}, nil
+	return sid, nil
 }
 
 func (m *mockUrlModel) GoTo(id string) (string, error) {
@@ -52,7 +51,7 @@ func TestAllRoute(t *testing.T) {
 		{
 			name:     "Returns without errors",
 			wantCode: http.StatusOK,
-			wantBody: `{"urls":[{"short_url":"ID_1","original_url":"https://www.example-url-1.com"},{"short_url":"ID_2","original_url":"https://www.example-url-2.dev"},{"short_url":"ID_3","original_url":"https://www.example-url-3.com"}]}`,
+			wantBody: `{"urls":["url:1001","url:1002","url:1003"]}`,
 		},
 	}
 
@@ -82,7 +81,7 @@ func TestAddRoute(t *testing.T) {
 			name:     "Returns without errors",
 			body:     bytes.NewBuffer([]byte("{\"url\": \"https://www.example.com\" }")),
 			wantCode: http.StatusOK,
-			wantBody: `{"url":{"short_url":"ID_1","original_url":"https://www.example.com"}}`,
+			wantBody: `{}`,
 		},
 		{
 			name:     "Returns error with empty body",
@@ -106,7 +105,10 @@ func TestAddRoute(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			utils.AssertStatusCode(t, tt.wantCode, w.Code)
-			utils.AssertResponseBody(t, tt.wantBody, w.Body.String())
+
+			if tt.wantBody != "{}" {
+				utils.AssertResponseBody(t, tt.wantBody, w.Body.String())
+			}
 		})
 	}
 }

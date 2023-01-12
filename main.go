@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer u.Close()
+	// defer u.Close()
 
 	e := &controllers.Env{Urls: u}
 

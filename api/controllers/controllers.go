@@ -5,14 +5,14 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Patrick564/url-shortener-backend/internal/models"
 	"github.com/Patrick564/url-shortener-backend/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/teris-io/shortid"
 )
 
 type Controllers interface {
-	All() ([]models.Url, error)
-	Add(url string) (models.Url, error)
+	All() ([]string, error)
+	Add(sid string, url string) (string, error)
 	GoTo(id string) (string, error)
 }
 
@@ -58,7 +58,16 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		return
 	}
 
-	u, err := e.Urls.Add(body.Url)
+	// TODO: add custom error
+	sid, err := shortid.GetDefault().Generate()
+	if err != nil {
+		ctx.JSON(
+			http.StatusInternalServerError,
+			gin.H{},
+		)
+	}
+
+	short, err := e.Urls.Add(sid, body.Url)
 	if err != nil {
 		if errors.Is(err, utils.ErrEmptyBody) {
 			log.Println(err)
@@ -79,7 +88,9 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 
 	ctx.JSON(
 		http.StatusOK,
-		gin.H{"url": u},
+		gin.H{
+			"short_url": short,
+		},
 	)
 }
 

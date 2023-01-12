@@ -2,11 +2,9 @@ package models
 
 import (
 	"context"
-	"net/url"
+	"fmt"
 
-	"github.com/Patrick564/url-shortener-backend/utils"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/teris-io/shortid"
+	"github.com/go-redis/redis/v8"
 )
 
 type Url struct {
@@ -15,78 +13,50 @@ type Url struct {
 }
 
 type UrlModel struct {
-	DB  *pgxpool.Pool
+	DB  *redis.Client
 	Ctx context.Context
-	SID *shortid.Shortid
 }
 
 func (u UrlModel) Close() {
 	u.DB.Close()
 }
 
-func (u UrlModel) All() ([]Url, error) {
-	rows, err := u.DB.Query(u.Ctx, "SELECT short_url, original_url FROM mock_values")
+func (u UrlModel) All() ([]string, error) {
+	k, _, err := u.DB.ScanType(u.Ctx, 0, "", 0, "hash").Result()
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var urls []Url
-	for rows.Next() {
-		var u Url
-		err = rows.Scan(&u.ShortUrl, &u.OriginalUrl)
-		if err != nil {
-			return nil, err
-		}
-		urls = append(urls, u)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return urls, nil
+	return k, nil
 }
 
-func (u UrlModel) Add(rawUrl string) (Url, error) {
-	p, err := url.ParseRequestURI(rawUrl)
-	if err != nil || p.Scheme == "" || p.Host == "" {
-		return Url{}, utils.ErrInvalidUrl
-	}
+func (u UrlModel) Add(sid string, rawUrl string) (string, error) {
+	key := fmt.Sprintf("url:%s", sid)
 
-	id, err := u.SID.Generate()
-	if err != nil {
-		return Url{}, err
-	}
-
-	_, err = u.DB.Exec(u.Ctx, "INSERT INTO mock_values(short_url, original_url) VALUES ($1, $2)", id, p)
-	if err != nil {
-		return Url{}, err
-	}
-
-	return Url{ShortUrl: id, OriginalUrl: p.String()}, nil
-}
-
-func (u UrlModel) GoTo(id string) (string, error) {
-	var url Url
-
-	err := u.DB.QueryRow(u.Ctx, "SELECT short_url, original_url FROM mock_values WHERE short_url=$1", id).Scan(&url.ShortUrl, &url.OriginalUrl)
+	err := u.DB.HSet(u.Ctx, key, "short", sid, "original", rawUrl).Err()
 	if err != nil {
 		return "", err
 	}
 
-	return url.OriginalUrl, nil
+	return sid, nil
 }
 
-func OpenDatabaseConn(ctx context.Context, databaseUrl string) (UrlModel, error) {
-	dbpool, err := pgxpool.New(ctx, databaseUrl)
+func (u UrlModel) GoTo(id string) (string, error) {
+	key := fmt.Sprintf("url:%s", id)
+	s, err := u.DB.HGet(u.Ctx, key, "original").Result()
 	if err != nil {
-		return UrlModel{}, err
+		return "", err
 	}
 
-	sid, err := shortid.New(1, shortid.DefaultABC, 2342)
-	if err != nil {
-		return UrlModel{}, err
-	}
+	return s, nil
+}
 
-	return UrlModel{DB: dbpool, Ctx: ctx, SID: sid}, dbpool.Ping(ctx)
+func OpenDatabaseConn(ctx context.Context, _ string) (UrlModel, error) {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "127.0.0.1:6379",
+		DB:       0,
+		Password: "",
+	})
+
+	return UrlModel{DB: rdb, Ctx: ctx}, nil
 }
