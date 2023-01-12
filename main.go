@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/Patrick564/url-shortener-backend/api"
 	"github.com/Patrick564/url-shortener-backend/api/controllers"
@@ -21,10 +20,9 @@ func main() {
 	ctx := context.Background()
 
 	redisHost := os.Getenv("REDIS_HOST")
-	redisDb, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
 	redisPwd := os.Getenv("REDIS_PWD")
 
-	u, err := models.OpenDatabaseConn(ctx, redisDb, redisHost, redisPwd)
+	u, err := models.OpenDatabaseConn(ctx, redisHost, redisPwd)
 	if err != nil {
 		log.Fatalln(err)
 	}
