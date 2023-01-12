@@ -20,9 +20,10 @@ func main() {
 	ctx := context.Background()
 
 	redisHost := os.Getenv("REDIS_HOST")
+	redisUsr := os.Getenv("REDISUSER")
 	redisPwd := os.Getenv("REDIS_PWD")
 
-	u, err := models.OpenDatabaseConn(ctx, redisHost, redisPwd)
+	u, err := models.OpenDatabaseConn(ctx, redisUsr, redisHost, redisPwd)
 	if err != nil {
 		log.Fatalln(err)
 	}

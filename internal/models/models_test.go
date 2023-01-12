@@ -15,7 +15,7 @@ var (
 
 func TestMain(m *testing.M) {
 	ctx = context.Background()
-	conn, err = OpenDatabaseConn(ctx, 0, "127.0.0.1:6379", "")
+	conn, err = OpenDatabaseConn(ctx, "", "127.0.0.1:6379", "")
 
 	code := m.Run()
 
