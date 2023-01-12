@@ -51,10 +51,10 @@ func (u UrlModel) GoTo(id string) (string, error) {
 	return s, nil
 }
 
-func OpenDatabaseConn(ctx context.Context, redisUsr, redisUrl, redisPwd string) (UrlModel, error) {
+func OpenDatabaseConn(ctx context.Context, redisUser, redisAddr, redisPwd string) (UrlModel, error) {
 	rdb := redis.NewClient(&redis.Options{
-		Username: redisUsr,
-		Addr:     redisUrl,
+		Username: redisUser,
+		Addr:     redisAddr,
 		DB:       0,
 		Password: redisPwd,
 	})
