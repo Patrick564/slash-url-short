@@ -9,14 +9,14 @@ import (
 	"github.com/Patrick564/url-shortener-backend/api"
 	"github.com/Patrick564/url-shortener-backend/api/controllers"
 	"github.com/Patrick564/url-shortener-backend/internal/models"
-	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("error at loading .env file: %+v", err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalf("error at loading .env file: %+v", err)
+	// }
 
 	ctx := context.Background()
 
