@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/joho/godotenv v1.4.0
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 )
 

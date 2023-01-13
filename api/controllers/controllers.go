@@ -58,12 +58,11 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: add custom error
 	sid, err := shortid.GetDefault().Generate()
 	if err != nil {
 		ctx.JSON(
 			http.StatusInternalServerError,
-			gin.H{},
+			gin.H{"error": err.Error()},
 		)
 	}
 
@@ -78,7 +77,6 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 			return
 		}
 
-		log.Println(err)
 		ctx.JSON(
 			http.StatusInternalServerError,
 			gin.H{"error": err.Error()},

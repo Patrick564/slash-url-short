@@ -3,3 +3,6 @@
 
 // Enviroment files
 *.env
+
+// Build files
+build/*
