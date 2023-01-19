@@ -11,6 +11,14 @@ Unless other variables are found. Just exec:
 go run .
 ```
 
+## Tests
+
+To run all tests in project exec:
+
+```go
+go test ./...
+```
+
 ## Endpoints
 
 - GET /api/all: Get all ids in database
