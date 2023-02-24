@@ -1,0 +1,62 @@
+info:
+  contact: {}
+paths:
+  /api/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Short URL
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Moved Permanently
+      summary: Show an account
+      tags:
+      - accounts
+  /api/add:
+    post:
+      consumes:
+      - application/json
+      description: post a new short id for url
+      parameters:
+      - description: Short URL
+        in: body
+        name: id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Create a new short url
+      tags:
+      - urls
+  /api/all:
+    get:
+      consumes:
+      - application/json
+      description: get all urls and short id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      summary: List all urls
+      tags:
+      - urls
+swagger: "2.0"

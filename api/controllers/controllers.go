@@ -20,6 +20,14 @@ type Env struct {
 	Urls Controllers
 }
 
+// ShowAccount godoc
+// @Summary      List all urls
+// @Description  get all urls and short id
+// @Tags         urls
+// @Accept       json
+// @Produce      json
+// @Success      200  {array} string
+// @Router       /api/all [get]
 func (e *Env) UrlsIndex(ctx *gin.Context) {
 	u, err := e.Urls.All()
 	if err != nil {
@@ -34,6 +42,15 @@ func (e *Env) UrlsIndex(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"urls": u})
 }
 
+// ShowAccount godoc
+// @Summary      Create a new short url
+// @Description  post a new short id for url
+// @Tags         urls
+// @Accept       json
+// @Produce      json
+// @Param        id   body    string  true  "Short URL"
+// @Success      200 {string} string
+// @Router       /api/add [post]
 func (e *Env) UrlsAdd(ctx *gin.Context) {
 	var body struct {
 		Url string `json:"url"`
@@ -92,6 +109,15 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 	)
 }
 
+// ShowAccount godoc
+// @Summary      Show an account
+// @Description  get string by ID
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Short URL"
+// @Success      301
+// @Router       /api/{id} [get]
 func (e *Env) UrlsGoToID(ctx *gin.Context) {
 	id := ctx.Param("id")
 	if id == "" {
