@@ -1,8 +1,8 @@
-// Test coverage
+# Test coverage
 *.out
 
-// Enviroment files
+# Enviroment files
 *.env
 
-// Build files
+# Build files
 build/*
