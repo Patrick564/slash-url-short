@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,6 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/teris-io/shortid"
 )
+
+type CreateRequest struct {
+	Url string `json:"url"`
+}
 
 type Controllers interface {
 	All() ([]string, error)
@@ -20,7 +25,6 @@ type Env struct {
 	Urls Controllers
 }
 
-// ShowAccount godoc
 // @Summary      List all urls
 // @Description  get all urls and short id
 // @Tags         urls
@@ -42,7 +46,6 @@ func (e *Env) UrlsIndex(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"urls": u})
 }
 
-// ShowAccount godoc
 // @Summary      Create a new short url
 // @Description  post a new short id for url
 // @Tags         urls
@@ -52,25 +55,21 @@ func (e *Env) UrlsIndex(ctx *gin.Context) {
 // @Success      200 {string} string
 // @Router       /api/add [post]
 func (e *Env) UrlsAdd(ctx *gin.Context) {
-	var body struct {
-		Url string `json:"url"`
-	}
+	body := CreateRequest{}
 
 	err := ctx.BindJSON(&body)
 	if err != nil {
-		if err.Error() == "EOF" {
-			log.Println(err)
-			ctx.JSON(
-				http.StatusBadRequest,
-				gin.H{"error": utils.ErrEmptyBody.Error()},
-			)
-			return
-		}
-
-		log.Println(err)
 		ctx.JSON(
 			http.StatusBadRequest,
 			gin.H{"error": err.Error()},
+		)
+		return
+	}
+
+	if body.Url == "" {
+		ctx.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": utils.ErrEmptyBody.Error()},
 		)
 		return
 	}
@@ -81,15 +80,17 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 			http.StatusInternalServerError,
 			gin.H{"error": err.Error()},
 		)
+		return
 	}
 
 	short, err := e.Urls.Add(sid, body.Url)
 	if err != nil {
-		if errors.Is(err, utils.ErrEmptyBody) {
-			log.Println(err)
+		if errors.Is(err, utils.ErrUrlExists) {
 			ctx.JSON(
-				http.StatusBadRequest,
-				gin.H{"error": err.Error()},
+				http.StatusOK,
+				gin.H{
+					"short_url": fmt.Sprintf("%s/%s", ctx.Request.Host, short),
+				},
 			)
 			return
 		}
@@ -102,14 +103,13 @@ func (e *Env) UrlsAdd(ctx *gin.Context) {
 	}
 
 	ctx.JSON(
-		http.StatusOK,
+		http.StatusCreated,
 		gin.H{
-			"short_url": short,
+			"short_url": fmt.Sprintf("%s/%s", ctx.Request.Host, sid),
 		},
 	)
 }
 
-// ShowAccount godoc
 // @Summary      Show an account
 // @Description  get string by ID
 // @Tags         accounts

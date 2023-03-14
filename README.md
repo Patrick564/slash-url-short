@@ -25,9 +25,8 @@ go test ./...
 
 ## Endpoints
 
-- GET /api/all: Get all ids in database
-- GET /api/:id: Get all ids in database
-- POST /api/:url: Get all ids in database
+- GET   /:id     Redirect to original url.
+- POST  /create  Create a new short url, if already exists returns previous url.
 
 ## Other
 

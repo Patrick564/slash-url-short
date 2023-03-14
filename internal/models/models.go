@@ -2,15 +2,11 @@ package models
 
 import (
 	"context"
-	"fmt"
+	"time"
 
+	"github.com/Patrick564/url-shortener-backend/utils"
 	"github.com/go-redis/redis/v8"
 )
-
-type Url struct {
-	ShortUrl    string `json:"short_url" db:"short_url"`
-	OriginalUrl string `json:"original_url" db:"original_url"`
-}
 
 type UrlModel struct {
 	DB  *redis.Client
@@ -22,7 +18,7 @@ func (u UrlModel) Close() {
 }
 
 func (u UrlModel) All() ([]string, error) {
-	k, _, err := u.DB.ScanType(u.Ctx, 0, "", 0, "hash").Result()
+	k, _, err := u.DB.ScanType(u.Ctx, 0, "short:id:*", 0, "string").Result()
 	if err != nil {
 		return nil, err
 	}
@@ -30,20 +26,27 @@ func (u UrlModel) All() ([]string, error) {
 	return k, nil
 }
 
-func (u UrlModel) Add(sid string, rawUrl string) (string, error) {
-	key := fmt.Sprintf("url:%s", sid)
+func (u UrlModel) Add(sid string, url string) (string, error) {
+	res, err := u.DB.Get(u.Ctx, url).Result()
+	if err == nil {
+		return res, utils.ErrUrlExists
+	}
 
-	err := u.DB.HSet(u.Ctx, key, "short", sid, "original", rawUrl).Err()
+	p := u.DB.Pipeline()
+
+	p.Set(u.Ctx, sid, url, time.Second*0)
+	p.Set(u.Ctx, url, sid, time.Second*0)
+
+	_, err = p.Exec(u.Ctx)
 	if err != nil {
 		return "", err
 	}
 
-	return sid, nil
+	return "", nil
 }
 
 func (u UrlModel) GoTo(id string) (string, error) {
-	key := fmt.Sprintf("url:%s", id)
-	s, err := u.DB.HGet(u.Ctx, key, "original").Result()
+	s, err := u.DB.Get(u.Ctx, id).Result()
 	if err != nil {
 		return "", err
 	}

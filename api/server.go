@@ -28,10 +28,10 @@ func SetupRouter(env *controllers.Env) *gin.Engine {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.GET("/api/all", env.UrlsIndex)
-	r.GET("/api/:id", env.UrlsGoToID)
+	r.GET("/list", env.UrlsIndex)
+	r.GET("/:id", env.UrlsGoToID)
 
-	r.POST("/api/add", env.UrlsAdd)
+	r.POST("/create", env.UrlsAdd)
 
 	return r
 }
