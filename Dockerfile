@@ -23,4 +23,4 @@ ENV PORT=${PORT}
 
 EXPOSE ${PORT}
 
-ENTRYPOINT /bin/out
+CMD /bin/out
